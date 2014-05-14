@@ -28,6 +28,7 @@
     </script>
 
     <script src="js/xml2json.js"></script>
+	<script type="text/javascript" src="js/zip.js"></script>
     <script type='text/javascript' src="https://x2js.googlecode.com/hg/xml2json.js"></script>
     <script src="http://yastatic.net/jquery/1.8.3/jquery.min.js"></script>
     <script type='text/javascript'src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
@@ -54,25 +55,56 @@
         }
     }
 
-    /**
-     * read text input
-     */
+        zip.workerScriptsPath = "js/";
 
-    function readText(filePath) {
-        var output = ""; //placeholder for text output
-        if(filePath.files && filePath.files[0]) {           
-            reader.onload = function (e) {
-                output = e.target.result;
-                displayContents(output);
-            };//end onload()
-            reader.readAsText(filePath.files[0]);
-        }//end if html5 filelist support
+        function readZip(blob, callback) {
 
-        else { //this is where you could fallback to Java Applet, Flash or similar
-            return false;
-        }       
-        return true;
-    }   
+            // use a BlobReader to read the zip from a Blob object
+            zip.createReader(new zip.BlobReader(blob), function(reader) {
+
+              // get all entries from the zip
+              reader.getEntries(function(entries) {
+
+                if (entries.length) {
+
+                  // get first entry content as text
+                  entries[0].getData(new zip.TextWriter(), function(text) {
+                    // text contains the entry data as a String
+
+                    callback(text);
+
+                    // close the zip reader
+                    reader.close(function() {
+                      // onclose callback
+                    });
+
+                  }, function(current, total) {
+                    // onprogress callback
+                  });
+                }
+              });
+            }, function(error) {
+              // onerror callback
+            });
+            
+        }
+
+    function readText(fileInput) {
+            var file = fileInput.files[0];
+
+            var onsuccess = displayContents;
+
+            if (file.name.indexOf('.zip') != -1 ) {
+                readZip(file, onsuccess);                
+            } else {
+                reader = new FileReader();
+                reader.onload = function (e) {               
+                    onsuccess(e.target.result);
+                };
+                reader.readAsText(file);               
+            }
+    }                     
+
 
     /**
      * display content using a basic HTML replacement
@@ -86,6 +118,9 @@
     json.website_info.files.file.forEach(function(file_node) {
         table.appendChild(createFileTableEntry(file_node));        
     });
+
+        //$('.button_more_yes').click(function(){$(this.parentElement.getElementsByClassName('popup')[0]).removeClass('popup_visibility_hidden');});
+        //$(".popup__close").first().click(function(){$(this.parentElement).hide()});
 
     }
 
@@ -116,8 +151,9 @@
         td = document.createElement('td');
         td.className = "table__item";
         if (file_node.size == '-1') {
-            file_node.size = PT_STR_FOLDER;
+            file_node.size = 'Каталог';
         }
+
         td.innerHTML = file_node.size;
         tr.appendChild(td);        
 
@@ -148,7 +184,10 @@
 
         var td = document.createElement('td');        
         td.className = "table__item";
-        td.innerHTML = "<div class=\"button-group i-bem button-group_js_inited\"><div class=\"popup popup_visibility_hidden i-bem popup_js_inited\" data-bem=\"{&quot;popup&quot;:{&quot;0&quot;:&quot;t&quot;,&quot;1&quot;:&quot;r&quot;,&quot;2&quot;:&quot;u&quot;,&quot;3&quot;:&quot;e&quot;}}\"><div class=\"popup__close\"></div><div class=\"popup__content\"><table class=\"table\"><tbody><tr class=\"table__line\"><td class=\"table__item table__item_bold_yes\"> Owner </td><td class=\"table__item\"> Petrov </td></tr></tbody></table></div></div><button class=\"button button_more_yes i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" type=\"button\"><div class=\"button__arrow\"></div></button><button class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\"><span class=\"button__text\">" + PT_STR_QUARANTINE + "</span></button><button class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\"><span class=\"button__text\">" + PT_STR_DELETE + "</span></button></div>";        
+        //td.innerHTML = "<div class=\"button-group i-bem button-group_js_inited\"><div class=\"popup popup_visibility_hidden i-bem popup_js_inited\" data-bem=\"{&quot;popup&quot;:{&quot;0&quot;:&quot;t&quot;,&quot;1&quot;:&quot;r&quot;,&quot;2&quot;:&quot;u&quot;,&quot;3&quot;:&quot;e&quot;}}\"><div class=\"popup__close\"></div><div class=\"popup__content\"><table class=\"table\"><tbody><tr class=\"table__line\"><td class=\"table__item table__item_bold_yes\"> Owner </td><td class=\"table__item\"> Petrov </td></tr></tbody></table></div></div><button class=\"button button_more_yes i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" type=\"button\"><div class=\"button__arrow\"></div></button>";
+        td.innerHTML = "<div class=\"button-group i-bem button-group_js_inited\"><div class=\"popup popup_visibility_hidden i-bem popup_js_inited\" data-bem=\"{&quot;popup&quot;:{&quot;0&quot;:&quot;t&quot;,&quot;1&quot;:&quot;r&quot;,&quot;2&quot;:&quot;u&quot;,&quot;3&quot;:&quot;e&quot;}}\"><div class=\"popup__close\"></div><div class=\"popup__content\"><table class=\"table\"><tbody><tr class=\"table__line\"><td class=\"table__item table__item_bold_yes\"> Hash </td><td class=\"table__item\">" + file_node.md5 + "</td></tr></tbody></table></div></div><button class=\"button button_more_yes i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" type=\"button\"><div class=\"button__arrow\"></div></button><button id=\"q_" + file_node.md5 + "\" class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_quarantine('" + file_node.md5 + "', '" + file_node.path + "')\"><span class=\"button__text\">Карантин</span></button><button id=\"d_" + file_node.md5 + "\" class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_delete('" + file_node.md5 + "', '" + file_node.path + "')\"><span class=\"button__text\">Удалить</span></button></div>";
+        //td.innerHTML += "<button id=\"q_" + file_node.md5 + "\" class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_quarantine('" + file_node.md5 + "', '" + file_node.path + "')\"><span class=\"button__text\">Карантин</span></button>";        
+        //td.innerHTML += "<button id=\"d_" + file_node.md5 + "\" class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_delete('" + file_node.md5 + "', '" + file_node.path + "')\"><span class=\"button__text\">Удалить</span></button></div>";
         tr.appendChild(td);        
 
         return tr;
@@ -168,7 +207,7 @@
 </script>
 
 
-  <link rel="stylesheet" href="css/_3-28.css" id="tableScreenCSS"/>
+  <link rel="stylesheet" href="css/analyzer.table.css" id="tableScreenCSS"/>
   <script>
       document.getElementById('tableScreenCSS').disabled = true;
   </script>
@@ -187,7 +226,7 @@
                 <div class="form__file-load">
                     <div class="form__line form__line_type_report-file">
                         <div class="file i-bem" data-bem="{&quot;file&quot;:&quot;true&quot;}"><span class="button button_size_s file__button i-bem" data-bem="{&quot;button&quot;:{}}" role="button"><span class="button__text">Загрузить файл</span>
-                            <input class="button__control file__control" type="file" name="report" onchange='turnOnTableScreen(); readText(this);' />
+                            <input accept="application/zip, text/xml" class="button__control file__control" type="file" name="report" onchange='turnOnTableScreen(); readText(this);' />
                             </span><span class="file__holder file__holder_state_hidden"><span class="file__text">Файл лога не выбран</span><span class="file__reset"></span></span>
                         </div>
                     </div>
@@ -326,15 +365,10 @@
     </div>
 
     
-    <script src="js/_3-28.js"></script>
-
-
-    <script type="text/javascript" language="javascript" src="js/HashTable.js"></script>
-    
+    <!-- <script src="js/_3-28.js"></script> -->
+    <script type="text/javascript" language="javascript" src="js/HashTable.js"></script>    
     <script type="text/javascript" language="javascript" src="js/jquery.dataTables.min.js"></script>
-
     <script type="text/javascript" language="javascript" src="js/analyzer.table.js"></script>
-
     <script type="text/javascript" language="javascript" src="//cdnjs.cloudflare.com/ajax/libs/zeroclipboard/1.3.5/ZeroClipboard.min.js"></script>
 
     <script type="text/javascript">
@@ -351,7 +385,7 @@
 
     </script>
 
-    
+    <!--
     <script language="javascript">
 
     var filesDataTable = null;
@@ -403,9 +437,9 @@
     $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
     $('#fileTypeFilter').keyup(function(){filesDataTable.fnFilter($('#fileTypeFilter').val(), 2);}); 
 
-
     </script>
 
+	-->
 
 
     </div>

@@ -7322,8 +7322,7 @@ function renderXml() {
 function triggerLink(id, state) {
     var obj = document.getElementById(id);
     if (obj) {
-        if (state) {
-            //obj.style.fontWeight = 'bold';
+        if (state) { 
             obj.style.textDecoration = 'line-through';
         } else {
             obj.style.fontWeight = 'normal';
@@ -7359,3 +7358,5 @@ function add_delete(uid, name) {
 
     return false;
 }
+
+console.log('ok');
