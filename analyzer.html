@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="utf-8"/>
+    <title>
+      Анализатор логов
+    </title>
+
+    <script>
+      (function(e,c){
+        e[c]=e[c].replace(/(ua_js_)no/g,"$1yes");
+      })(document.documentElement,"className");
+
+        var language = window.navigator.userLanguage || window.navigator.language; 
+        language = language.toLowerCase();
+        var locaizationScriptUrl = "js/localization.en.js";
+        var script = document.createElement('script');
+
+        if (language.indexOf('ru') == 0) {
+            locaizationScriptUrl = "js/localization.ru.js";
+        }
+        script.src = locaizationScriptUrl;
+        document.head.appendChild(script);
+        console.log(locaizationScriptUrl + ' was imported');
+      
+
+    </script>
+
+    <script src="js/xml2json.js"></script>
+    <script type='text/javascript' src="https://x2js.googlecode.com/hg/xml2json.js"></script>
+    <script src="http://yastatic.net/jquery/1.8.3/jquery.min.js"></script>
+    <script type='text/javascript'src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
+
+
+
+    <script type="text/javascript">
+
+  	var x2js = new X2JS();
+    var json = "";
+
+    var reader; //GLOBAL File Reader object for demo purpose only
+
+    /**
+     * Check for the various File API support.
+     */
+    function checkFileAPI() {
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            reader = new FileReader();
+            return true; 
+        } else {
+            alert('Браузер не поддерживает FailAPI. Рекомендуется обновить браузер.');
+            return false;
+        }
+    }
+
+    /**
+     * read text input
+     */
+
+    function readText(filePath) {
+        var output = ""; //placeholder for text output
+        if(filePath.files && filePath.files[0]) {           
+            reader.onload = function (e) {
+                output = e.target.result;
+                displayContents(output);
+            };//end onload()
+            reader.readAsText(filePath.files[0]);
+        }//end if html5 filelist support
+
+        else { //this is where you could fallback to Java Applet, Flash or similar
+            return false;
+        }       
+        return true;
+    }   
+
+    /**
+     * display content using a basic HTML replacement
+     */
+    function displayContents(txt) {
+        var el = document.getElementById('recipeTextarea'); 
+        json = x2js.xml_str2json(txt);
+        //el.value = JSON.stringify(json); //display output in DOM
+
+    var table = document.getElementById('filesTable');
+    json.website_info.files.file.forEach(function(file_node) {
+        table.appendChild(createFileTableEntry(file_node));        
+    });
+
+    }
+
+
+    function createFileTableEntry(file_node) {
+        var tr = document.createElement('tr');
+        tr.className = "table__line";
+
+        var td = document.createElement('td');
+        td.className = "table__item table__item_align_center";
+        if (file_node.hasOwnProperty('_detected')) {
+            if (file_node._detected == 'c') {
+                td.innerHTML = '<span class="table__flag table__flag_color_red"></span>';
+            } else {
+                td.innerHTML = '<span class="table__flag table__flag_color_yellow"></span>';            
+            }
+        } else {
+            td.innerHTML = '<span class="table__flag table__flag_color_green"></span>';
+        }
+
+        tr.appendChild(td);        
+
+        td = document.createElement('td');
+        td.className = "table__item table__item_full-width_yes";
+        td.innerHTML = file_node.path;
+        tr.appendChild(td);        
+
+        td = document.createElement('td');
+        td.className = "table__item";
+        if (file_node.size == '-1') {
+            file_node.size = PT_STR_FOLDER;
+        }
+        td.innerHTML = file_node.size;
+        tr.appendChild(td);        
+
+        td = document.createElement('td');        
+        td.className = "table__item";
+        td.innerHTML = $.format.date(new Date(file_node.ctime * 1000), "yyyy-MM-dd HH:mm:ss");
+        tr.appendChild(td);        
+
+        td = document.createElement('td');
+        td.className = "table__item";
+        td.innerHTML = $.format.date(new Date(file_node.mtime * 1000), "yyyy-MM-dd HH:mm:ss");
+        tr.appendChild(td);        
+
+        td = document.createElement('td');
+        td.className = "table__item";
+        td.innerHTML = file_node.owner;
+        tr.appendChild(td);        
+
+        td = document.createElement('td');
+        td.className = "table__item";
+        td.innerHTML = file_node.group;
+        tr.appendChild(td);        
+
+        td = document.createElement('td');        
+        td.className = "table__item";
+        td.innerHTML = file_node.access;
+        tr.appendChild(td);        
+
+        var td = document.createElement('td');        
+        td.className = "table__item";
+        td.innerHTML = "<div class=\"button-group i-bem button-group_js_inited\"><div class=\"popup popup_visibility_hidden i-bem popup_js_inited\" data-bem=\"{&quot;popup&quot;:{&quot;0&quot;:&quot;t&quot;,&quot;1&quot;:&quot;r&quot;,&quot;2&quot;:&quot;u&quot;,&quot;3&quot;:&quot;e&quot;}}\"><div class=\"popup__close\"></div><div class=\"popup__content\"><table class=\"table\"><tbody><tr class=\"table__line\"><td class=\"table__item table__item_bold_yes\"> Owner </td><td class=\"table__item\"> Petrov </td></tr></tbody></table></div></div><button class=\"button button_more_yes i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" type=\"button\"><div class=\"button__arrow\"></div></button><button class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\"><span class=\"button__text\">" + PT_STR_QUARANTINE + "</span></button><button class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\"><span class=\"button__text\">" + PT_STR_DELETE + "</span></button></div>";        
+        tr.appendChild(td);        
+
+        return tr;
+
+    }
+
+
+     function turnOnTableScreen() {
+         $('#uploadScreen').hide();
+         document.getElementById('uploadScreenCSS').disabled = true;
+         document.getElementById('tableScreenCSS').disabled = false;
+         $('#tableScreen').show();
+
+
+     }
+       
+</script>
+
+
+  <link rel="stylesheet" href="css/_3-28.css" id="tableScreenCSS"/>
+  <script>
+      document.getElementById('tableScreenCSS').disabled = true;
+  </script>
+
+  </head>
+  <body class="page" onload="checkFileAPI();">  
+
+    <link rel="stylesheet" href="css/analyzer.upload_form.css" id="uploadScreenCSS"/>
+  
+      <div id="uploadScreen">              
+        <div class="body">
+           <div class="body__content">
+            <h2 class="header">Загрузите лог для анализа</h2>
+            <p class="sub-header sub-header_align_left">Лог создается при сканировании сайта инструментом и содержит информацию об окружении сайта (данные о вебсервере, интерпретаторе, системах контроля версий) а также файлах. Загружать лог можно как в виде архива, так и в виде распакованного xml.</p>
+
+                <div class="form__file-load">
+                    <div class="form__line form__line_type_report-file">
+                        <div class="file i-bem" data-bem="{&quot;file&quot;:&quot;true&quot;}"><span class="button button_size_s file__button i-bem" data-bem="{&quot;button&quot;:{}}" role="button"><span class="button__text">Загрузить файл</span>
+                            <input class="button__control file__control" type="file" name="report" onchange='turnOnTableScreen(); readText(this);' />
+                            </span><span class="file__holder file__holder_state_hidden"><span class="file__text">Файл лога не выбран</span><span class="file__reset"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+        </div>
+        <div class="body__spacer"></div>
+        <div class="footer">
+            <a class="b-link footer__item" href="#">Обратная связь</a>
+            <a class="b-link footer__item" href="#">Помощь</a>
+            <div class="footer__item footer__item_type_copyright">©&nbsp;2001&mdash;2013</div>
+        </div>
+    </div>
+    <!-- <script src="../static/js/analyzer.upload_form.js"></script> -->
+
+      </div>
+      <div id="tableScreen" style="display: none;">
+
+          <input type="file" onchange='readText(this)' />
+    <div class="body body_full_height">
+      <div class="head head_position_relative">
+        <h1 class="header header_type_main">
+          Report Analyzer PHP Antimalware Tool
+        </h1>
+
+        <h2 class="head__sub-header">
+          Список файлов
+        </h2>
+        <p class="head__description">
+          Анализатор логов PAT. Для эффективного поиска вредоносных файлов следует добавить вайтлисты или полученные ранее логи. В качестве фильтров можно задать маску имени файлов и дату создания.
+        </p>
+      </div>
+        <div class="filter i-bem" data-bem="{&quot;filter&quot;:&quot;true&quot;}">
+        <button class="filter__flag">
+          <span class="filter__text-flag">
+            Флаг
+          </span>
+          <span class="filter__arrow">
+          </span>
+        </button><div class="popup popup_name_flag popup_visibility_hidden i-bem" data-bem="{&quot;popup&quot;:{}}">
+          <div class="popup__content">
+            <ul class="list i-bem" data-bem="{&quot;list&quot;:&quot;true&quot;}">
+              <li class="list__line list__line_checked_yes" val="green" num="1">
+                <span class="list__check">
+                </span>
+                <span class="list__indicate list__indicate_color_green">
+                </span>
+                <span class="list__text">
+                  Не найдено
+                </span>
+              </li>
+              <li class="list__line list__line_checked_yes" val="yellow" num="2">
+                <span class="list__check">
+                </span>
+                <span class="list__indicate list__indicate_color_yellow">
+                </span>
+                <span class="list__text">
+                  Подозрительный
+                </span>
+              </li>
+              <li class="list__line" val="red" num="3">
+                <span class="list__check">
+                </span>
+                <span class="list__indicate list__indicate_color_red">
+                </span>
+                <span class="list__text">
+                  Вредоносный
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div><input class="filter__file-name" placeholder="Путь к файлу" id="filePathSearchFilter"/><input class="filter__file-type" placeholder="Тип файла" id="fileTypeFilter"/><button class="filter__timeslot">
+        <span class="filter__text-timeslot">Временной интервал</span><span class="filter__arrow"></span></button><div class="popup popup_name_timeslot popup_visibility_hidden i-bem" data-bem="{&quot;popup&quot;:{}}">
+        <div class="popup__content"><div class="m-datepicker m-datepicker_type_month m-datepicker_disable_change i-bem" data-bem="{&quot;m-datepicker&quot;:&quot;true&quot;}"></div></div>
+        </div><button class="filter__filter-button filter__filter-button_theme_action">
+          Фильтр
+        </button>
+      </div>
+
+      <table class="table" id="filesTable">
+            <thead class="table__head">
+                <th class="table__head-item table__head-item_type_flag"><span class="table__column-title" id="tableHeaderFlagSpan">Флаг</span>
+                </th>
+                <th class="table__head-item table__head-item_type_Filename"><span class="table__column-title table__column-title_sort_up">Имя файла</span>
+                </th>
+                <th class="table__head-item table__head-item_type_Size"><span class="table__column-title table__column-title_sort_down">Размер</span>
+                </th>
+                <th class="table__head-item table__head-item_type_Created"><span class="table__column-title">Создан</span>
+                </th>
+                <th class="table__head-item table__head-item_type_Modified"><span class="table__column-title">Изменен</span>
+                </th>
+                <th class="table__head-item table__head-item_type_Created"><span class="table__column-title">Владелец</span>
+                </th>
+                <th class="table__head-item table__head-item_type_Modified"><span class="table__column-title">Группа</span>
+                </th>
+                <th class="table__head-item table__head-item_type_Modified"><span class="table__column-title">Атрибуты</span>
+                </th>
+                <th class="table__head-item table__head-item_type_button">Действие</th>
+            </thead>
+
+        <tbody class="table__body">
+
+        </tbody>
+      </table>
+
+      <div class="body__content body__content_display_block">
+        <p class="paragraph">
+          Созданное предписание можно запустить в выполняторе предписаний PAT
+        </p>
+        <form class="form">
+          <h3 class="form__head">
+            Предписание
+          </h3>
+          <div class="form__textarea-wrapper">
+            <textarea id="recipeTextarea" class="form__textarea">
+            </textarea>
+          </div>
+          <div class="form__buttonarea form__buttonarea_align_right">
+            <button class="button button_theme_action i-bem" data-bem="{&quot;button&quot;:{}}" role="button" id="copyRecipeButton">
+              Копировать
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="footer">
+        <a class="b-link footer__item" href="#">
+          Обратная связь
+        </a>
+        <a class="b-link footer__item" href="#">
+          Помощь
+        </a>
+        <div class="footer__item footer__item_type_copyright">
+          ©&nbsp;2001&mdash;2013
+        </div>
+      </div>
+    </div>
+
+    
+    <script src="js/_3-28.js"></script>
+
+
+    <script type="text/javascript" language="javascript" src="js/HashTable.js"></script>
+    
+    <script type="text/javascript" language="javascript" src="js/jquery.dataTables.min.js"></script>
+
+    <script type="text/javascript" language="javascript" src="js/analyzer.table.js"></script>
+
+    <script type="text/javascript" language="javascript" src="//cdnjs.cloudflare.com/ajax/libs/zeroclipboard/1.3.5/ZeroClipboard.min.js"></script>
+
+    <script type="text/javascript">
+
+        var client = new ZeroClipboard(document.getElementById("copyRecipeButton"), {
+          moviePath: "//cdnjs.cloudflare.com/ajax/libs/zeroclipboard/1.3.5/ZeroClipboard.swf"
+        });
+
+        client.on("load", function(client) {
+          client.on('dataRequested', function (client, args) {
+              client.setText(document.getElementById('recipeTextarea').value);
+          });
+        });
+
+    </script>
+
+    
+    <script language="javascript">
+
+    var filesDataTable = null;
+    $(document).ready(function(){
+        
+        filesDataTable = $('#filesTable').dataTable({
+           "aLengthMenu": [[100, 10, 500, -1], [100, 10, 500, "All"]],
+           "iDisplayLength": 10,
+           "oLanguage": {
+                "sLengthMenu": "Отображать по _MENU_ записей",
+                "sZeroRecords": "Ничего не найдено",
+                "sInfo": "Отображается c _START_ по _END_ из _TOTAL_ файлов",
+                "sInfoEmpty": "Нет файлов",
+                "sInfoFiltered": "(всего записей _MAX_)",
+                "sSearch":       "Поиск:",
+                "sUrl":          "",
+                "oPaginate": {
+                    "sFirst": "Первая",
+                    "sPrevious": "Предыдущая",
+                    "sNext": "Следующая",
+                    "sLast": "Последняя"
+                },
+                "oAria": {
+                    "sSortAscending":  ": активировать для сортировки столбца по возрастанию",
+                    "sSortDescending": ": активировать для сортировки столбцов по убыванию"			
+                }
+            },
+
+            /*
+           
+           "aoColumns": [
+                                         {"bSortable": true},
+                                         {"bSortable": true},
+                                         {"iDataSort": 10},
+                                         {"bSortable": true},
+                                         {"iDataSort": 8},
+                                         {"iDataSort": 9},
+                                         {"bSortable": true},
+                                         {"bSortable": true},
+                                         {"bSortable": false},
+                                         {"bVisible": false},
+                                         {"bVisible": false},
+                                         {"bVisible": false}
+                         ]*/
+         });
+
+    });
+
+    $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
+    $('#fileTypeFilter').keyup(function(){filesDataTable.fnFilter($('#fileTypeFilter').val(), 2);}); 
+
+
+    </script>
+
+
+
+    </div>
+
+  </body>
+</html>
