@@ -1,4 +1,4 @@
-﻿var PT_STR_QUARANTINE = "Карантин";
+var PT_STR_QUARANTINE = "Карантин";
 var PT_STR_DELETE = "Удалить";
 var PT_STR_FILTER = "Фильтр";
 var PT_STR_SNIPPET = "Контекст";

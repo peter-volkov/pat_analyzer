@@ -7,47 +7,28 @@
       Анализатор логов
     </title>
 
-    <script>
-      (function(e,c){
-        e[c]=e[c].replace(/(ua_js_)no/g,"$1yes");
-      })(document.documentElement,"className");
-
-        var language = window.navigator.userLanguage || window.navigator.language; 
-        language = language.toLowerCase();
-        var locaizationScriptUrl = "js/localization.en.js";
-        var script = document.createElement('script');
-
-        if (language.indexOf('ru') == 0) {
-            locaizationScriptUrl = "js/localization.ru.js";
-        }
-        script.src = locaizationScriptUrl;
-        document.head.appendChild(script);
-        console.log(locaizationScriptUrl + ' was imported');
-      
-
-    </script>
-
     <script src="js/xml2json.js"></script>
 	<script type="text/javascript" src="js/zip.js"></script>
     <script type='text/javascript' src="https://x2js.googlecode.com/hg/xml2json.js"></script>
     <script src="http://yastatic.net/jquery/1.8.3/jquery.min.js"></script>
     <script type='text/javascript'src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
+    <script type="text/javascript" language="javascript" src="//cdnjs.cloudflare.com/ajax/libs/zeroclipboard/1.3.5/ZeroClipboard.min.js"></script>
 
-
+    <link rel="stylesheet" href="css/jquery.dataTables.css"/> 
 
     <script type="text/javascript">
 
   	var x2js = new X2JS();
     var json = "";
 
-    var reader; //GLOBAL File Reader object for demo purpose only
+    //var reader; //GLOBAL File Reader object for demo purpose only
 
     /**
      * Check for the various File API support.
      */
     function checkFileAPI() {
         if (window.File && window.FileReader && window.FileList && window.Blob) {
-            reader = new FileReader();
+            var reader = new FileReader();
             return true; 
         } else {
             alert('Браузер не поддерживает FailAPI. Рекомендуется обновить браузер.');
@@ -109,15 +90,124 @@
     /**
      * display content using a basic HTML replacement
      */
+
+    function getFileInfoArray(json) {
+        var fileInfoArrayArray = new Array;
+        var fileDictDict = json.website_info.files.file;
+        for(var fileDictName in fileDictDict) {
+            var fileInfoArray = new Array;
+            var fileDict = fileDictDict[fileDictName];
+
+            fileInfoArray.push(fileDict['_detected']);
+            fileInfoArray.push(fileDict['path']);
+            fileInfoArray.push(fileDict['size']);
+            fileInfoArray.push(fileDict.ctime);
+            fileInfoArray.push(fileDict.mtime);
+            //fileInfoArray.push($.format.date(new Date(fileDict.ctime * 1000), "yyyy-MM-dd HH:mm:ss"));
+            //fileInfoArray.push($.format.date(new Date(fileDict.mtime * 1000), "yyyy-MM-dd HH:mm:ss"));
+            fileInfoArray.push(fileDict['owner']);
+            fileInfoArray.push(fileDict['group']);
+            fileInfoArray.push(fileDict['access']);
+            fileInfoArray.push({'md5': fileDict.md5, 'pos': fileDict._pos, 'snippet': fileDict._snippet, 'path': fileDict.path});
+
+            fileInfoArrayArray.push(fileInfoArray);
+        }
+        return fileInfoArrayArray;             
+    }
+    
+
     function displayContents(txt) {
         var el = document.getElementById('recipeTextarea'); 
         json = x2js.xml_str2json(txt);
         //el.value = JSON.stringify(json); //display output in DOM
+        //var dataArray = new Array;
+            
+        filesDataTable = $('#filesTable').dataTable({
 
-    var table = document.getElementById('filesTable');
-    json.website_info.files.file.forEach(function(file_node) {
-        table.appendChild(createFileTableEntry(file_node));        
-    });
+           "aLengthMenu": [[100, 10, 500, -1], [100, 10, 500, "All"]],
+
+           "iDisplayLength": 50,
+
+           //Localization
+           "oLanguage": {
+                "sLengthMenu": "Отображать по _MENU_ записей",
+                "sZeroRecords": "Ничего не найдено",
+                "sInfo": "Отображается c _START_ по _END_ из _TOTAL_ файлов",
+                "sInfoEmpty": "Нет файлов",
+                "sInfoFiltered": "(всего записей _MAX_)",
+                "sSearch":       "Поиск:",
+                "sUrl":          "",
+                "oPaginate": {
+                    "sFirst": "Первая",
+                    "sPrevious": "Предыдущая",
+                    "sNext": "Следующая",
+                    "sLast": "Последняя"
+                },
+                "oAria": {
+                    "sSortAscending":  ": активировать для сортировки столбца по возрастанию",
+                    "sSortDescending": ": активировать для сортировки столбцов по убыванию"			
+                }
+            },
+
+            //Data source
+            "aaData": getFileInfoArray(json),
+
+            //Data preprocessing for rendering
+            "aoColumnDefs": [
+
+                //Detection flag field preprocessing        
+                {
+                    "aTargets": [0],
+                    "mRender": function (flag, type, full) {
+                        if (flag == 'c') {
+                            return '<span class="table__flag table__flag_color_red"></span>';
+                        } else if (flag == 'w') {
+                            return '<span class="table__flag table__flag_color_yelllow"></span>';
+                        }
+                        return '<span class="table__flag table__flag_color_green"></span>';
+                    }
+
+                },
+
+                //File size field preprocessing
+                {
+                    "aTargets": [2],
+                    "mRender": function (size, type, full) {
+                        if (size == -1) {
+                            return '[Каталог]';
+                        }
+                        return size;
+                    }
+                },
+
+                //Ctime and mtime fields preprocessing        
+                {
+                    "aTargets": [3, 4],
+                    "sType": "date",
+                    "mRender": function (timestamp, type, full) {
+                        return $.format.date(new Date(timestamp * 1000), "yyyy-MM-dd HH:mm:ss");
+                    }
+                },
+
+                {
+                    "aTargets": [8],
+                    "mRender": function (detectionInfo, type, full) {                        
+                        var buttons = "<div class=\"button-group i-bem button-group_js_inited\"><div class=\"popup popup_visibility_hidden i-bem popup_js_inited\" data-bem=\"{&quot;popup&quot;:{&quot;0&quot;:&quot;t&quot;,&quot;1&quot;:&quot;r&quot;,&quot;2&quot;:&quot;u&quot;,&quot;3&quot;:&quot;e&quot;}}\"><div class=\"popup__close\"></div><div class=\"popup__content\"><table class=\"table\"><tbody><tr class=\"table__line\"><td class=\"table__item table__item_bold_yes\"> Hash </td><td class=\"table__item\">" + detectionInfo.md5 + "</td></tr></tbody></table></div></div><button class=\"button button_more_yes i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" type=\"button\"><div class=\"button__arrow\"></div></button><button id=\"q_" + detectionInfo.md5 + "\" class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_quarantine('" + detectionInfo.md5 + "', '" + detectionInfo.path + "')\"><span class=\"button__text\">Карантин</span></button><button id=\"d_" + detectionInfo.md5 + "\" class=\"button button_size_s i-bem button_js_inited\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_delete('" + detectionInfo.md5 + "', '" + detectionInfo.path + "')\"><span class=\"button__text\">Удалить</span></button></div>";
+                        return buttons;
+                    }
+                },
+
+            ]
+        });
+
+        $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
+        $('#fileTypeFilter').keyup(function(){filesDataTable.fnFilter($('#fileTypeFilter').val(), 2);}); 
+
+        /*
+        json.website_info.files.file.forEach(function(file_node) {
+            table.appendChild(createFileTableEntry(file_node));        
+        });
+        */
 
         //$('.button_more_yes').click(function(){$(this.parentElement.getElementsByClassName('popup')[0]).removeClass('popup_visibility_hidden');});
         //$(".popup__close").first().click(function(){$(this.parentElement).hide()});
@@ -249,7 +339,7 @@
     <div class="body body_full_height">
       <div class="head head_position_relative">
         <h1 class="header header_type_main">
-          Report Analyzer PHP Antimalware Tool
+          Анализатор логов PAT
         </h1>
 
         <h2 class="head__sub-header">
@@ -363,13 +453,16 @@
         </div>
       </div>
     </div>
-
     
-    <!-- <script src="js/_3-28.js"></script> -->
     <script type="text/javascript" language="javascript" src="js/HashTable.js"></script>    
-    <script type="text/javascript" language="javascript" src="js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" language="javascript" src="js/analyzer.table.js"></script>
-    <script type="text/javascript" language="javascript" src="//cdnjs.cloudflare.com/ajax/libs/zeroclipboard/1.3.5/ZeroClipboard.min.js"></script>
+    <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
+    <!-- <script type="text/javascript" language="javascript" src="js/analyzer.table.js" defer></script> -->
+    <script>
+        var tableScreenScript = document.createElement("script"); 
+        tableScreenScript.src = "js/analyzer.table.js"; 
+        document.head.appendChild(tableScreenScript);
+    </script>
+
 
     <script type="text/javascript">
 
@@ -384,63 +477,6 @@
         });
 
     </script>
-
-    <!--
-    <script language="javascript">
-
-    var filesDataTable = null;
-    $(document).ready(function(){
-        
-        filesDataTable = $('#filesTable').dataTable({
-           "aLengthMenu": [[100, 10, 500, -1], [100, 10, 500, "All"]],
-           "iDisplayLength": 10,
-           "oLanguage": {
-                "sLengthMenu": "Отображать по _MENU_ записей",
-                "sZeroRecords": "Ничего не найдено",
-                "sInfo": "Отображается c _START_ по _END_ из _TOTAL_ файлов",
-                "sInfoEmpty": "Нет файлов",
-                "sInfoFiltered": "(всего записей _MAX_)",
-                "sSearch":       "Поиск:",
-                "sUrl":          "",
-                "oPaginate": {
-                    "sFirst": "Первая",
-                    "sPrevious": "Предыдущая",
-                    "sNext": "Следующая",
-                    "sLast": "Последняя"
-                },
-                "oAria": {
-                    "sSortAscending":  ": активировать для сортировки столбца по возрастанию",
-                    "sSortDescending": ": активировать для сортировки столбцов по убыванию"			
-                }
-            },
-
-            /*
-           
-           "aoColumns": [
-                                         {"bSortable": true},
-                                         {"bSortable": true},
-                                         {"iDataSort": 10},
-                                         {"bSortable": true},
-                                         {"iDataSort": 8},
-                                         {"iDataSort": 9},
-                                         {"bSortable": true},
-                                         {"bSortable": true},
-                                         {"bSortable": false},
-                                         {"bVisible": false},
-                                         {"bVisible": false},
-                                         {"bVisible": false}
-                         ]*/
-         });
-
-    });
-
-    $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
-    $('#fileTypeFilter').keyup(function(){filesDataTable.fnFilter($('#fileTypeFilter').val(), 2);}); 
-
-    </script>
-
-	-->
-
 
     </div>
 
