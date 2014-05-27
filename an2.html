@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html class="ua_js_no">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
     <meta charset="utf-8"/>
     <title>
-      Title of the page
+      Анализатор логов
     </title>
 
     <script src="js/xml2json.js"></script>
@@ -15,6 +15,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/zeroclipboard/1.3.5/ZeroClipboard.min.js"></script>
     <script src="js/HashTable.js"></script>    
     <script src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
+    <script src="js/fileParser.js"></script>        
 
     <script src="test_data.js"></script>
  
@@ -22,17 +23,15 @@
   <link rel="stylesheet" href="css/jquery.dataTables.css"/> 
   <meta name="description" content=""/>
   </head>
-  <body class="page">  
+  <body class="page" onload="checkFileAPI();">  
+
+    <input type="file" onchange='readText(this)' /> 
+
     <div class="body body_full_height">
       <div class="head head_position_relative">
         <h1 class="header header_type_main">
           Report Analyzer PHP Antimalware Tool
         </h1>
-        <div class="head__uninstall">
-          <button class="button button_size_s i-bem" data-bem="{&quot;button&quot;:{}}" role="button">
-            Uninstall tool
-          </button>
-        </div>
         <h2 class="head__sub-header">
           Report for DOMAIN.COM
         </h2>
@@ -40,6 +39,8 @@
           Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
         </p>
       </div>
+
+
         <div class="filter i-bem" data-bem="{&quot;filter&quot;:&quot;true&quot;}">
         <button class="filter__flag">
           <span class="filter__text-flag">
@@ -86,6 +87,7 @@
           Filter
         </button>
       </div>
+
 
       <div class="body__content body__content_display_block">
 
@@ -188,11 +190,11 @@
             XML Recomendations
           </h3>
           <div class="form__textarea-wrapper">
-            <textarea class="form__textarea">
+            <textarea class="form__textarea" id="recipeTextarea">
             </textarea>
           </div>
           <div class="form__buttonarea form__buttonarea_align_right">
-            <button class="button button_theme_action i-bem" data-bem="{&quot;button&quot;:{}}" role="button">
+            <button class="button button_theme_action i-bem" data-bem="{&quot;button&quot;:{}}" role="button" id="copyRecipeButton">
               Copy to Clipboard
             </button>
           </div>
@@ -237,8 +239,10 @@
 			return fileInfoArrayArray;             
 		}
 
-		function displayContents(json) {
+		function displayContents(xmlStr) {
 				
+            var json = parseXMLstrToJSON(xmlStr);
+
 			filesDataTable = $('#filesTable').dataTable({
 
 			   "aLengthMenu": [[100, 10, 500, -1], [100, 10, 500, "All"]],
@@ -320,11 +324,10 @@
 			
 		};
 
-        displayContents(test_data);
 
     </script>
     
-    <script type="text/javascript" language="javascript" src="js/analyzer.table.js" defer></script>
+    <script type="text/javascript" src="js/analyzer.table.js" defer></script>
     <script type="text/javascript">
 
         var client = new ZeroClipboard(document.getElementById("copyRecipeButton"), {

@@ -117,10 +117,8 @@
     
 
     function displayContents(txt) {
-        var el = document.getElementById('recipeTextarea'); 
+
         json = x2js.xml_str2json(txt);
-        //el.value = JSON.stringify(json); //display output in DOM
-        //var dataArray = new Array;
             
         filesDataTable = $('#filesTable').dataTable({
 
@@ -305,6 +303,8 @@
   </head>
   <body class="page" onload="checkFileAPI();">  
 
+
+
     <link rel="stylesheet" href="css/analyzer.upload_form.css" id="uploadScreenCSS"/>
   
       <div id="uploadScreen">              
@@ -333,6 +333,8 @@
     <!-- <script src="../static/js/analyzer.upload_form.js"></script> -->
 
       </div>
+
+
       <div id="tableScreen" style="display: none;">
 
           <input type="file" onchange='readText(this)' />
@@ -456,13 +458,7 @@
     
     <script type="text/javascript" language="javascript" src="js/HashTable.js"></script>    
     <script type="text/javascript" language="javascript" src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
-    <!-- <script type="text/javascript" language="javascript" src="js/analyzer.table.js" defer></script> -->
-    <script>
-        var tableScreenScript = document.createElement("script"); 
-        tableScreenScript.src = "js/analyzer.table.js"; 
-        document.head.appendChild(tableScreenScript);
-    </script>
-
+    <script type="text/javascript" language="javascript" src="js/analyzer.table.js" defer></script> 
 
     <script type="text/javascript">
 
