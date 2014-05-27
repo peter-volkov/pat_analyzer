@@ -16,14 +16,60 @@
     <script src="js/HashTable.js"></script>    
     <script src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
     <script src="js/fileParser.js"></script>        
-
-    <script src="test_data.js"></script>
- 
-  <link rel="stylesheet" href="css/analyzer.table.css" id="tableScreenCSS"/>
+  
   <link rel="stylesheet" href="css/jquery.dataTables.css"/> 
+  <link rel="stylesheet" href="css/analyzer.table.css"/> 
+  
   <meta name="description" content=""/>
   </head>
   <body class="page" onload="checkFileAPI();">  
+
+  <style>
+    #uploadScreen {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color:#ffd000;
+        z-index: 2;
+    }
+  </style>      
+      
+      <!-- <link rel="stylesheet" href="css/analyzer.upload_form.css" id="uploadScreenCSS"/> -->
+
+      <div id="uploadScreen">              
+        <div class="body">
+           <div class="body__content">
+            <h2 class="header">Загрузите лог для анализа</h2>
+            <p class="sub-header sub-header_align_left">Лог создается при сканировании сайта инструментом и содержит информацию об окружении сайта (данные о вебсервере, интерпретаторе, системах контроля версий) а также файлах. Загружать лог можно как в виде архива, так и в виде распакованного xml.</p>
+
+                <div class="form__file-load">
+                    <div class="form__line form__line_type_report-file">
+                        <div class="file i-bem" data-bem="{&quot;file&quot;:&quot;true&quot;}"><span class="button button_size_s file__button i-bem" data-bem="{&quot;button&quot;:{}}" role="button"><span class="button__text">Загрузить файл</span>
+                            <input accept="application/zip, text/xml" class="button__control file__control" type="file" name="report" onchange="turnOnTableScreen(); readText(this);"/>
+                            </span><span class="file__holder file__holder_state_hidden"><span class="file__text">Файл лога не выбран</span><span class="file__reset"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+        </div>
+        <div class="body__spacer"></div>
+        <div class="footer">
+            <a class="b-link footer__item" href="#">Обратная связь</a>
+            <a class="b-link footer__item" href="#">Помощь</a>
+            <div class="footer__item footer__item_type_copyright">©&nbsp;2001&mdash;2013</div>
+        </div>
+    </div>
+    
+      </div>
+	
+
+    <div id="tableScreen">
+
+    <!-- <link rel="stylesheet" href="css/analyzer.table.css" id="tableScreenCSS"/> -->
+
+
 
     <input type="file" onchange='readText(this)' /> 
 
@@ -279,7 +325,12 @@
           });
         });
 
-    </script>
+     function turnOnTableScreen() {
+         $('#uploadScreen').hide();
+		 //document.getElementById('uploadScreen').remove();       
+     }
 
+    </script>
+  </div>
   </body>
 </html>
