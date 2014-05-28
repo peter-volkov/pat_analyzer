@@ -191,13 +191,11 @@
     <script>
         var logLoaded = false;
 
-		function getFileInfoArray(json) {
+        function parseWebsiteLog(fileDictDict) {
 			var fileInfoArrayArray = new Array;
-			var fileDictDict = json.website_info.files.file;
 			for(var fileDictName in fileDictDict) {
 				var fileInfoArray = new Array;
 				var fileDict = fileDictDict[fileDictName];
-
 				fileInfoArray.push(fileDict['_detected']);
 				fileInfoArray.push(fileDict['path']);
 				fileInfoArray.push(fileDict['size']);
@@ -210,10 +208,46 @@
 				fileInfoArray.push(fileDict['access']);
 				fileInfoArray.push({'md5': fileDict.md5, 'pos': fileDict._pos, 'snippet': fileDict._snippet, 'path': fileDict.path});
                 fileInfoArray.push(fileDict.md5);
-
 				fileInfoArrayArray.push(fileInfoArray);
 			}
 			return fileInfoArrayArray;             
+        }
+
+        function parseWhitelist(fileDictDict) {
+			var fileInfoArrayArray = new Array;
+			for(var fileDictName in fileDictDict) {
+				var fileInfoArray = new Array;
+				var fileDict = fileDictDict[fileDictName];
+				fileInfoArray.push(null);
+				fileInfoArray.push(fileDict.path);
+				fileInfoArray.push(null);
+				fileInfoArray.push(null);
+				fileInfoArray.push(null);
+				//fileInfoArray.push($.format.date(new Date(fileDict.ctime * 1000), "yyyy-MM-dd HH:mm:ss"));
+				//fileInfoArray.push($.format.date(new Date(fileDict.mtime * 1000), "yyyy-MM-dd HH:mm:ss"));
+				fileInfoArray.push(null);
+				fileInfoArray.push(null);
+				fileInfoArray.push(null);
+				fileInfoArray.push(null);
+                fileInfoArray.push(fileDict.md5);
+				fileInfoArrayArray.push(fileInfoArray);
+			}
+			return fileInfoArrayArray;             
+        }
+
+		function getFileInfoArray(json) {
+			var fileDictDict;
+			if (json.hasOwnProperty('website_info')) {
+			    //website log
+			    fileDictDict = json.website_info.files.file;
+			    return parseWebsiteLog(fileDictDict);
+			} else if (json.hasOwnProperty('files')) {
+			    //whitelist
+			    fileDictDict = json.files.file;			    
+			    console.log('whitelist');
+			    console.log(fileDictDict);
+			    return parseWhitelist(fileDictDict);
+			}
 		}
 
 		function buildTrable(data) {
@@ -316,7 +350,7 @@
 				filter_obj = {};
 				new_data.forEach(function(fileInfoArray) {
 					filepath = fileInfoArray[1];
-					hash = fileInfoArray[8].md5;
+					hash = fileInfoArray[9];
 					if (hash) {      
 						filter_obj[filepath] = hash;
 					}
@@ -344,11 +378,6 @@
 					filesDataTable.rows(filteredRowNumbers).remove();
 
 				filesDataTable.draw();
-
-				//data = filterData(data, new_data);
-                //var table = $('#filesTable').DataTable();
-				//table.column(1).search('wp')
-				//buildTrable(data);
 
 		    } else {
 				logLoaded = true;	
