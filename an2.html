@@ -34,9 +34,7 @@
         background-color:#ffd000;
         z-index: 2;
     }
-  </style>      
-      
-      <!-- <link rel="stylesheet" href="css/analyzer.upload_form.css" id="uploadScreenCSS"/> -->
+  </style>           
 
       <div id="uploadScreen">              
         <div class="body">
@@ -67,11 +65,7 @@
 
     <div id="tableScreen">
 
-    <!-- <link rel="stylesheet" href="css/analyzer.table.css" id="tableScreenCSS"/> -->
-
-
-
-    <input type="file" onchange='readText(this)' /> 
+    <input type="file" onchange='readText(this);' /> 
 
     <div class="body body_full_height">
       <div class="head head_position_relative">
@@ -195,6 +189,7 @@
     </div>
 
     <script>
+        var logLoaded = false;
 
 		function getFileInfoArray(json) {
 			var fileInfoArrayArray = new Array;
@@ -214,16 +209,14 @@
 				fileInfoArray.push(fileDict['group']);
 				fileInfoArray.push(fileDict['access']);
 				fileInfoArray.push({'md5': fileDict.md5, 'pos': fileDict._pos, 'snippet': fileDict._snippet, 'path': fileDict.path});
+                fileInfoArray.push(fileDict.md5);
 
 				fileInfoArrayArray.push(fileInfoArray);
 			}
 			return fileInfoArrayArray;             
 		}
 
-		function displayContents(xmlStr) {
-				
-            var json = parseXMLstrToJSON(xmlStr);
-
+		function buildTrable(data) {
 			filesDataTable = $('#filesTable').dataTable({
 
 			   "aLengthMenu": [[100, 10, 500, -1], [100, 10, 500, "All"]],
@@ -252,7 +245,7 @@
 				},
 
 				//Data source
-				"aaData": getFileInfoArray(json),
+				"aaData": data,
 
 				//Data preprocessing for rendering
 				"aoColumnDefs": [
@@ -299,10 +292,70 @@
 							return buttons;
 						}
 					},
+					//md5 hash as a hidden column
+                    {
+                        "aTargets": [9],
+                        "visible": false
+                    }
+									 
 
 				]
-			});
-			
+			});		
+		}
+		
+		function filterData(original_data, filter_data) {
+		     return original_data[0];
+		}
+
+		var data = "";
+		var new_data = "";
+		function displayContents(xmlStr) {
+		    if (logLoaded) {
+		        var new_json = parseXMLstrToJSON(xmlStr);
+				new_data = getFileInfoArray(new_json);
+				filter_obj = {};
+				new_data.forEach(function(fileInfoArray) {
+					filepath = fileInfoArray[1];
+					hash = fileInfoArray[8].md5;
+					if (hash) {      
+						filter_obj[filepath] = hash;
+					}
+				});
+				var filesDataTable = $('#filesTable').DataTable(); 
+				var filteredRowNumbers = [];
+				var filteredData = filesDataTable
+					.column( 1 )
+					.data()
+					.filter( function ( value, index ) { 
+						//check file name
+						if (filter_obj.hasOwnProperty(value)) {
+							//check file hash
+							logFileHash = filesDataTable.row(index).data()[9];
+							filterFileHash = filter_obj[value];
+							console.log(value + ' ' + logFileHash + ' ' + filterFileHash);
+							if (logFileHash == filterFileHash) {
+								filteredRowNumbers.push(index);
+							}			
+						}
+						return false;		
+					} );
+					filteredData;
+
+					filesDataTable.rows(filteredRowNumbers).remove();
+
+				filesDataTable.draw();
+
+				//data = filterData(data, new_data);
+                //var table = $('#filesTable').DataTable();
+				//table.column(1).search('wp')
+				//buildTrable(data);
+
+		    } else {
+				logLoaded = true;	
+				var json = parseXMLstrToJSON(xmlStr);
+				data = getFileInfoArray(json);
+				buildTrable(data);
+			}					
 		};
 
         $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
