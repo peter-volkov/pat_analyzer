@@ -64,9 +64,7 @@
 	
 
     <div id="tableScreen">
-
-    <input type="file" onchange='readText(this);' /> 
-
+    
     <div class="body body_full_height">
       <div class="head head_position_relative">
         <h1 class="header header_type_main">
@@ -123,9 +121,9 @@
         </div><input class="filter__file-name" placeholder="Путь к файлу" id="filePathSearchFilter"/><input class="filter__file-type" placeholder="Тип файла" id="fileTypeFilter"/><button class="filter__timeslot"><input id='dateMin' type='hidden' /><input id='dateMax' type='hidden' />
         <span class="filter__text-timeslot" id="fileTimeFilterSpan">Временной интервал</span><span class="filter__arrow"></span></button><div class="popup popup_name_timeslot popup_visibility_hidden i-bem" id="fileTimeFilterPopup" data-bem="{&quot;popup&quot;:{}}">
         <div class="popup__content"><div class="m-datepicker m-datepicker_type_month m-datepicker_disable_change i-bem" data-bem="{&quot;m-datepicker&quot;:&quot;true&quot;}"></div></div>
-        </div><button class="filter__filter-button filter__filter-button_theme_action">
-          Фильтр
-        </button>
+        </div><input accept="application/zip, text/xml" class="button__control file__control" type="file" name="report" onchange="turnOnTableScreen(); readText(this);"><button class="filter__filter-button filter__filter-button_theme_action">
+          Фильтр из файла          
+        </button></input>
       </div>
 
 
@@ -364,6 +362,10 @@
     		//var filesDataTable = $('#filesTable').DataTable();
 			$('#dateMin').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
 			$('#dateMax').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
+
+            $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
+            $('#fileTypeFilter').keyup(function(){filesDataTable.fnFilter($('#fileTypeFilter').val(), 2);}); 
+
 		});
 		
 		var data = "";
@@ -411,13 +413,7 @@
 				buildTrable(data);
 			}					
 		};
-
 		
-        $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
-        $('#fileTypeFilter').keyup(function(){filesDataTable.fnFilter($('#fileTypeFilter').val(), 2);}); 
-		//var table1 = $('#filesTable').DataTable(); 
-
-
     </script>
     
     <script type="text/javascript" src="js/analyzer.table.js" defer></script>
