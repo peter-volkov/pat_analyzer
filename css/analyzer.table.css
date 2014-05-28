@@ -480,18 +480,13 @@ button::-moz-focus-inner
     border-color: rgba(0,0,0,.3);
 }
 
-/* ../../desktop.blocks/filter/__filter-button/filter__filter-button.css end */
-/* ../../libs/bem-components/common.blocks/popup/popup.css begin */
-.popup
-{
-    position: absolute;
-}
 
 /* ../../libs/bem-components/common.blocks/popup/popup.css end */
 /* ../../desktop.blocks/popup/popup.css begin */
 .popup
 {
     position: absolute;
+    text-align: left;
 
     padding: 18px;
 
