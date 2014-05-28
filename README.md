@@ -1,6 +1,6 @@
 Php antimalware tool log analyzer
 ====================
-An utility which allows to analyze website logs  made by php antimalwae tool.
+An utility which allows to analyze website logs made by php antimalware tool.
 
 ====================
 Log example:
@@ -64,9 +64,13 @@ Licence
 
 BSD Licence
 Copyright (c) 2013 
+
 Peter Volkov, peter.r.volkov@yandex.ru
+
 Greg Zemskov, ai@revisium.com
+
 All rights reserved.
+
 
 ```
 Redistribution and use in source and binary forms, with or without modification,
