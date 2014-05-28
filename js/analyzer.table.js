@@ -5539,8 +5539,16 @@ modules.define('i-bem__dom', function (provide, DOM) {
                         var popupTimeslot = this.findBlockInside({block: 'popup', modName: 'name', modVal: 'timeslot'}),
                             calendar = popupTimeslot.findBlockInside('m-datepicker'),
                             text = this.elem('text-timeslot');
+
                         calendar.domElem.on('change', function (e, date) {
-                            text.text(self.getTimeslot(date));
+                            timeslot = self.getTimeslot(date);
+                            var dateFrame = timeslot.split(' — ', 2);
+                            $('#dateMin').val(dateFrame[0]).trigger('change');
+                            $('#dateMax').val(dateFrame[1]).trigger('change');
+                            text.text(timeslot);
+                                                        
+                            console.log(timeslot);
+
                         })
 
                         popupTimeslot.domElem.on('hide', function () {
@@ -5554,7 +5562,7 @@ modules.define('i-bem__dom', function (provide, DOM) {
                         var popupFlag = this.findBlockInside({block: 'popup', modName: 'name', modVal: 'flag'});
 
                         popupFlag.domElem.on('hide', function () {
-                            self.setMod(self.elem('flag'), 'open', '');
+                            self.setMod(self.elem('flag'), 'open', '');                            
                         })
 
                         this.togglePopup(popupFlag)
@@ -5568,7 +5576,7 @@ modules.define('i-bem__dom', function (provide, DOM) {
                 to = date.to,
                 string = '';
 
-            string += this._addZero(from.getDate()) + '.' + this._addZero(from.getMonth()) + '.' + from.getFullYear() + '-' + this._addZero(to.getDate()) + '.' + this._addZero(to.getMonth()) + '.' + to.getFullYear();
+            string += from.getFullYear() + '-' + this._addZero(from.getMonth()) + '-' + this._addZero(from.getDate()) + ' — ' + to.getFullYear() + '-' + this._addZero(to.getMonth()) + '-' + this._addZero(to.getDate());
             return string
         },
         _addZero: function (num) {
