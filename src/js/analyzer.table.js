@@ -6116,6 +6116,7 @@ modules.define('i-bem__dom', function (provide, DOM) {
                 'inited': function () {
                     var self = this;
                     this.checked = [];
+
                     this.bindTo('line', 'click tap', function (e) {
                         this.toggleMod($(e.currentTarget), 'checked', 'yes');
                     })

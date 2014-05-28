@@ -34,22 +34,49 @@
         background-color:#ffd000;
         z-index: 2;
     }
+
+   .upload__screen__block {
+    width: 500px;
+    height: 500px;
+
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+    }
+
+    .upload__screen__button {
+    opacity:0; 
+    width: 200px;
+    height: 180px;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    position:absolute;
+    z-index: 3;
+
+    }
+
+ 
   </style>           
 
       <div id="uploadScreen">              
         <div class="body">
-           <div class="body__content">
+
+           <div class="upload__screen__block">
             <h2 class="header">Загрузите лог для анализа</h2>
             <p class="sub-header sub-header_align_left">Лог создается при сканировании сайта инструментом и содержит информацию об окружении сайта (данные о вебсервере, интерпретаторе, системах контроля версий) а также файлах. Загружать лог можно как в виде архива, так и в виде распакованного xml.</p>
 
-                <div class="form__file-load">
-                    <div class="form__line form__line_type_report-file">
-                        <div class="file i-bem" data-bem="{&quot;file&quot;:&quot;true&quot;}"><span class="button button_size_s file__button i-bem" data-bem="{&quot;button&quot;:{}}" role="button"><span class="button__text">Загрузить файл</span>
-                            <input accept="application/zip, text/xml" class="button__control file__control" type="file" name="report" onchange="turnOnTableScreen(); readText(this);"/>
-                            </span><span class="file__holder file__holder_state_hidden"><span class="file__text">Файл лога не выбран</span><span class="file__reset"></span></span>
-                        </div>
-                    </div>
-                </div>
+            <input accept="application/zip, text/xml"  class="upload__screen__button" type="file" name="report" onchange="turnOnTableScreen(); readText(this);">
+            <span class="button button_theme_action i-bem button_js_inited button_hovered">Загрузить файл</span>
+            </input>
+
+
 
         </div>
         <div class="body__spacer"></div>
@@ -107,7 +134,7 @@
                   Подозрительный
                 </span>
               </li>
-              <li class="list__line" val="red" num="3">
+              <li class="list__line list__line_checked_yes" val="red" num="3">
                 <span class="list__check">
                 </span>
                 <span class="list__indicate list__indicate_color_red">
@@ -118,12 +145,13 @@
               </li>
             </ul>
           </div>
-        </div><input class="filter__file-name" placeholder="Путь к файлу" id="filePathSearchFilter"/><input class="filter__file-type" placeholder="Тип файла" id="fileTypeFilter"/><button class="filter__timeslot"><input id='dateMin' type='hidden' /><input id='dateMax' type='hidden' />
+        </div><input class="filter__file-name" placeholder="Путь к файлу" id="filePathSearchFilter"/><button class="filter__timeslot"><input id='dateMin' type='hidden' /><input id='dateMax' type='hidden' />
         <span class="filter__text-timeslot" id="fileTimeFilterSpan">Временной интервал</span><span class="filter__arrow"></span></button><div class="popup popup_name_timeslot popup_visibility_hidden i-bem" id="fileTimeFilterPopup" data-bem="{&quot;popup&quot;:{}}">
         <div class="popup__content"><div class="m-datepicker m-datepicker_type_month m-datepicker_disable_change i-bem" data-bem="{&quot;m-datepicker&quot;:&quot;true&quot;}"></div></div>
-        </div><input accept="application/zip, text/xml" class="button__control file__control" type="file" name="report" onchange="turnOnTableScreen(); readText(this);"><button class="filter__filter-button filter__filter-button_theme_action">
+        </div><input accept="application/zip, text/xml" style="opacity:0;position: absolute;" type="file" name="report" onchange="turnOnTableScreen(); readText(this);"><button class="filter__filter-button filter__filter-button_theme_action">          
           Фильтр из файла          
-        </button></input>
+        </button>
+        </input>
       </div>
 
 
@@ -246,19 +274,27 @@
 			}
 		}
 
+		//datatable filtering by timeslot and flags
 		$.fn.dataTable.ext.search.push(
 			function( settings, data, dataIndex ) {
 			    var minDateStr = $('#dateMin').val();
 			    var maxDateStr = $('#dateMax').val();
 
-			    if (!minDateStr || !maxDateStr) 
-			        return true;
+ 			    var flags = [];
+         		$('.list__line_checked_yes').each(function(){flags.push(this.getAttribute('val'))});
 
 				var minDate = new Date(minDateStr);
 				var maxDate = new Date(maxDateStr);
 				var date = new Date(data[4]); // use data for the mtime column
+
+			    var flag = data[0];
+
+				if (flags.indexOf(flag) == -1) {
+				    return false;
+				} 
         		 
-				if ( ( minDateStr == '' && date <= maxDate ) ||
+				if ( ( minDateStr == '' && '' == maxDateStr ) ||
+				     ( minDateStr == '' && date <= maxDate ) ||
 					 ( minDate <= date && '' == maxDateStr ) ||
 					 ( minDate <= date && date <= maxDate ) )
 				{      
@@ -305,13 +341,17 @@
 					//Detection flag field preprocessing        
 					{
 						"aTargets": [0],
+						"sType": "html",
+						"sClass": "table__item",
+						//FIXME - profomance issue with tag stripping
+						//http://datatables.net/forums/discussion/3896/how-to-apply-sorting-on-hidden-column
 						"mRender": function (flag, type, full) {
 							if (flag == 'c') {
-								return '<span class="table__flag table__flag_color_red"></span>';
+								return '<span class="table__flag table__flag_color_red"><span style="display:none">red<span></span>';								
 							} else if (flag == 'w') {
-								return '<span class="table__flag table__flag_color_yellow"></span>';
+								return '<span class="table__flag table__flag_color_yellow"><span style="display:none">yellow</span></span>';
 							}
-							return '<span class="table__flag table__flag_color_green"></span>';
+							return '<span class="table__flag table__flag_color_green"><span style="display:none">green</span></span>';							
 						}
 
 					},
@@ -319,6 +359,7 @@
 					//File size field preprocessing
 					{
 						"aTargets": [2],
+						"sClass": "table__item",
 						"mRender": function (size, type, full) {
 							if (size == -1) {
 								return '[Каталог]';
@@ -330,17 +371,21 @@
 					//Ctime and mtime fields preprocessing        
 					{
 						"aTargets": [3, 4],
+						"sClass": "table__item",
 						"sType": "date",
 						"mRender": function (timestamp, type, full) {
 							return $.format.date(new Date(timestamp * 1000), "yyyy-MM-dd HH:mm:ss");
 						}
 					},
-
+					{
+						"aTargets": [1, 5, 6, 7],
+    					"sClass": "table__item",
+    				},
 					{
 						"aTargets": [8],
 						"sClass": "table__item",
 						"mRender": function (detectionInfo, type, full) {                        
-							var buttons = "<div class=\"button-group i-bem button-group_js_inited\"><div class=\"popup popup_visibility_hidden i-bem popup_js_inited\" data-bem=\"{&quot;popup&quot;:{&quot;0&quot;:&quot;t&quot;,&quot;1&quot;:&quot;r&quot;,&quot;2&quot;:&quot;u&quot;,&quot;3&quot;:&quot;e&quot;}}\"><div class=\"popup__close\"></div><div class=\"popup__content\"><table class=\"table\"><tbody><tr class=\"table__line\"><td class=\"table__item table__item_bold_yes\"> Hash </td><td class=\"table__item\">" + detectionInfo.md5 + "</td></tr></tbody></table></div></div><button class=\"button button_more_yes i-bem\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" type=\"button\"><div class=\"button__arrow\"></div></button><button id=\"q_" + detectionInfo.md5 + "\" class=\"button button_size_s i-bem\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_quarantine('" + detectionInfo.md5 + "', '" + detectionInfo.path + "')\"><span class=\"button__text\">Карантин</span></button><button id=\"d_" + detectionInfo.md5 + "\" class=\"button button_size_s i-bem\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_delete('" + detectionInfo.md5 + "', '" + detectionInfo.path + "')\"><span class=\"button__text\">Удалить</span></button></div>";
+							var buttons = "<div class=\"button-group i-bem button-group_js_inited\"><div class=\"popup popup_visibility_hidden i-bem popup_js_inited\" data-bem=\"{&quot;popup&quot;:{&quot;0&quot;:&quot;t&quot;,&quot;1&quot;:&quot;r&quot;,&quot;2&quot;:&quot;u&quot;,&quot;3&quot;:&quot;e&quot;}}\"><div class=\"popup__close\"></div><div class=\"popup__content\"><table class=\"table\"><tbody><tr class=\"table__line\"><td class=\"table__item table__item_bold_yes\"> Hash </td><td class=\"table__item\">" + detectionInfo.md5 + "</td></tr></tbody></table></div></div><button class=\"button_more_yes button i-bem\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" type=\"button\"><div class=\"button__arrow\"></div></button><button id=\"q_" + detectionInfo.md5 + "\" class=\"button button_size_s i-bem\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_quarantine('" + detectionInfo.md5 + "', '" + detectionInfo.path + "')\"><span class=\"button__text\">Карантин</span></button><button id=\"d_" + detectionInfo.md5 + "\" class=\"button button_size_s i-bem\" data-bem=\"{&quot;button&quot;:{}}\" role=\"button\" onclick=\"return add_delete('" + detectionInfo.md5 + "', '" + detectionInfo.path + "')\"><span class=\"button__text\">Удалить</span></button></div>";
 							return buttons;
 						}
 					},
@@ -354,19 +399,14 @@
 				]
 			});		
 
-
-
 		}
-		
-		$(document).ready(function() {
 
-			$('#dateMin').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
-			$('#dateMax').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
-
-            $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
-            $('#fileTypeFilter').keyup(function(){filesDataTable.fnFilter($('#fileTypeFilter').val(), 2);}); 
-
-		});
+		function filterByFlags() {
+		    var flags = [];
+     		$('.list__line_checked_yes').each(function(){flags.push(this.getAttribute('val'))});
+     		console.log(flags);
+     		filesDataTable.DataTable().draw();
+		}		
 		
 		var data = "";
 		var new_data = "";
@@ -410,9 +450,12 @@
 				logLoaded = true;	
 				var json = parseXMLstrToJSON(xmlStr);
 				data = getFileInfoArray(json);
-				buildTrable(data);
+				buildTrable(data);      
+
+				
 			}					
 		};
+
 		
     </script>
     
@@ -431,6 +474,12 @@
 
      function turnOnTableScreen() {
          $('#uploadScreen').hide();		
+
+         $('.list_js_inited').change(filterByFlags);
+		 $('#dateMin').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
+		 $('#dateMax').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
+         $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
+
      }
 
     </script>
