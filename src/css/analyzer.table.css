@@ -330,10 +330,18 @@ button::-moz-focus-inner
 
 .filter .popup_name_flag
 {
+    right: 720px;
+    top: 36px;
+    left: auto;
+}
+
+.filter .popup_name_columns
+{
     right: 592px;
     top: 36px;
     left: auto;
 }
+
 
 /* ../../desktop.blocks/filter/filter.css end */
 /* ../../desktop.blocks/filter/__flag/filter__flag.css begin */
@@ -381,6 +389,7 @@ button::-moz-focus-inner
     background: url("../img/arrow.png") no-repeat;
 }
 
+.filter__columns_open_yes .filter__arrow,
 .filter__flag_open_yes .filter__arrow,
 .filter__timeslot_open_yes .filter__arrow
 {
@@ -431,6 +440,26 @@ button::-moz-focus-inner
 
 /* ../../desktop.blocks/filter/__file-type/filter__file-type.css end */
 /* ../../desktop.blocks/filter/__timeslot/filter__timeslot.css begin */
+.filter__columns
+{
+    background: #fff;
+    border: 1px solid #c3c2c2;
+    font-size: 13px;
+    margin: 0;
+    padding: 4px 12px 6px;
+    vertical-align: middle;
+    margin-left: -1px;
+    outline: none;
+    height: 28px;
+}
+
+.filter__columns:hover
+{
+    border-color: rgba(0, 0, 0, .3);
+    cursor: pointer;
+}
+
+
 .filter__timeslot
 {
     background: #fff;
@@ -458,6 +487,14 @@ button::-moz-focus-inner
     width: 198px;
     display: inline-block;
 }
+
+.filter__text-columns
+{
+    text-align: left;
+    width: 98px;
+    display: inline-block;
+}
+
 
 /* ../../desktop.blocks/filter/__text-timeslot/filter__text-timeslot.css end */
 /* ../../desktop.blocks/filter/__filter-button/filter__filter-button.css begin */

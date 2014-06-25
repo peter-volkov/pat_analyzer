@@ -5567,6 +5567,17 @@ modules.define('i-bem__dom', function (provide, DOM) {
 
                         this.togglePopup(popupFlag)
                     })
+                    this.bindTo('columns', 'click tap', function () {
+                        this.toggleMod(this.elem('columns'), 'open', 'yes');
+                        var popupFlag = this.findBlockInside({block: 'popup', modName: 'name', modVal: 'columns'});
+
+                        popupFlag.domElem.on('hide', function () {
+                            self.setMod(self.elem('columns'), 'open', '');                            
+                        })
+
+                        this.togglePopup(popupFlag)
+                    })
+
                 }
             }
         },

@@ -104,8 +104,6 @@
           Анализатор логов PAT. Для эффективного поиска вредоносных файлов следует добавить вайтлисты или полученные ранее логи. В качестве фильтров можно задать маску имени файлов и дату создания.
         </p>
       </div>
-
-
         <div class="filter i-bem" data-bem="{&quot;filter&quot;:&quot;true&quot;}">
         <button class="filter__flag">
           <span class="filter__text-flag">
@@ -143,6 +141,67 @@
                   Вредоносный
                 </span>
               </li>
+            </ul>
+          </div>
+        </div><button class="filter__columns"><span class="filter__text-columns" id="fileTimeFilterSpan">Поля таблицы</span><span class="filter__arrow"></span></button><div class="popup popup_name_columns popup_visibility_hidden i-bem" data-bem="{&quot;popup&quot;:{}}">
+          <div class="popup__content">
+            <ul class="list i-bem" data-bem="{&quot;list&quot;:&quot;true&quot;}">
+              <li class="list__line list__line_checked_yes" val="0" num="0">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Флаг
+                </span>
+              </li>
+              <li class="list__line list__line_checked_yes" val="1">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Путь
+                </span>
+              </li>
+              <li class="list__line list__line_checked_yes" val="2">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Размер
+                </span>
+              </li>
+              <li class="list__line list__line_checked_yes" val="3">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Время создания
+                </span>
+              </li>
+              <li class="list__line list__line_checked_yes" val="4">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Время модификации
+                </span>
+              </li>
+              <li class="list__line" val="5">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Владелец
+                </span>
+              </li>
+              <li class="list__line" val="6">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Группа
+                </span>
+              </li>
+              <li class="list__line" val="7">
+                <span class="list__check">
+                </span>
+                <span class="list__text">
+                  Атрибуты
+                </span>
+              </li>              
             </ul>
           </div>
         </div><input class="filter__file-name" placeholder="Путь к файлу" id="filePathSearchFilter"/><button class="filter__timeslot"><input id='dateMin' type='hidden' /><input id='dateMax' type='hidden' />
@@ -281,7 +340,7 @@
 			    var maxDateStr = $('#dateMax').val();
 
  			    var flags = [];
-         		$('.list__line_checked_yes').each(function(){flags.push(this.getAttribute('val'))});
+         		$('.popup_name_flag').find('.list__line_checked_yes').each(function(){flags.push(this.getAttribute('val'))});
 
 				var minDate = new Date(minDateStr);
 				var maxDate = new Date(maxDateStr);
@@ -378,8 +437,13 @@
 						}
 					},
 					{
-						"aTargets": [1, 5, 6, 7],
+						"aTargets": [1],
     					"sClass": "table__item",
+    				},
+					{
+						"aTargets": [5, 6, 7],
+    					"sClass": "table__item",
+                        "visible": false
     				},
 					{
 						"aTargets": [8],
@@ -401,12 +465,21 @@
 
 		}
 
+		function filterColumns() {
+			$('.popup_name_columns').find('.list__line').each(function(){
+				var column = filesDataTable.DataTable().column( this.getAttribute('val') );
+				column.visible( $(this).hasClass('list__line_checked_yes') );				
+				console.log(this.getAttribute('val'));
+			});
+		}
 		function filterByFlags() {
+
 		    var flags = [];
-     		$('.list__line_checked_yes').each(function(){flags.push(this.getAttribute('val'))});
+     		$('.popup_name_flag').find('.list__line_checked_yes').each(function(){flags.push(this.getAttribute('val'))});
+     		console.log($('.popup_name_flag').find('.list__line_checked_yes'));
      		console.log(flags);
      		filesDataTable.DataTable().draw();
-		}		
+		}	
 		
 		var data = "";
 		var new_data = "";
@@ -475,7 +548,8 @@
      function turnOnTableScreen() {
          $('#uploadScreen').hide();		
 
-         $('.list_js_inited').change(filterByFlags);
+         $('.popup_name_flag').find('.list_js_inited').change(filterByFlags);
+         $('.popup_name_columns').find('.list_js_inited').change(filterColumns);
 		 $('#dateMin').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
 		 $('#dateMax').change( function() { console.log(this.value); filesDataTable.DataTable().draw(); } );
          $('#filePathSearchFilter').keyup(function(){filesDataTable.fnFilter($('#filePathSearchFilter').val(), 1);}); 
